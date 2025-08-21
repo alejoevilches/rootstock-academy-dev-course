@@ -121,10 +121,37 @@ jobs:
             let hardhatOutput = '';
             let foundryOutput = '';
 
-            // Read last 50 lines of Hardhat output (if exists)
+            // Read and clean Hardhat output (include test results and errors, skip gas tables)
             if (fs.existsSync('reports/hardhat-output.txt')) {
               const hhLines = fs.readFileSync('reports/hardhat-output.txt', 'utf8').split('\n');
-              hardhatOutput = hhLines.slice(-50).join('\n');
+              
+              let endIndex = hhLines.length - 1;
+              
+              let hasFailures = false;
+              let testSummaryEndIndex = -1;
+              
+              for (let i = 0; i < hhLines.length; i++) {
+                if (hhLines[i].includes('passing') || hhLines[i].includes('failing')) {
+                  testSummaryEndIndex = i;
+                  if (hhLines[i].includes('failing')) {
+                    hasFailures = true;
+                  }
+                }
+              }
+              
+              if (hasFailures) {
+                for (let i = testSummaryEndIndex; i < hhLines.length; i++) {
+                  if (hhLines[i].includes('·') || hhLines[i].includes('│') || hhLines[i].includes('Solidity and Network Configuration')) {
+                    endIndex = i - 1;
+                    break;
+                  }
+                }
+              } else {
+                endIndex = testSummaryEndIndex;
+              }
+              
+              const cleanLines = hhLines.slice(0, endIndex + 1);
+              hardhatOutput = cleanLines.join('\n').trim();
             }
 
             // Read last 50 lines of Foundry output (if exists)
