@@ -125,7 +125,7 @@ jobs:
             
             if [ "$MODULE" = "module3" ]; then
               echo "🔄 Module 3: Running student tests first..."
-              npx hardhat test 2>&1 || true
+              npx hardhat test test/* 2>&1 || true
               
               echo "🔍 Module 3: Running test validators..."
               npx hardhat test test-validators/* > ../reports/hardhat-output.txt 2>&1 || true
